@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block main %}
+
+    <div class="property-card">
+
+        <div>
+            <img class="single" src="{{ url_for('get_image', filename= properties.photo )}} "/>
+        </div>
+        <div class="single-card-body">  
+            <h2>{{ properties.title }}</h2>
+            <div class="attributes">
+                <span class="attribute price">${{ properties.price }}</span> <span class="attribute type">{{ properties.propertyType}}</span>
+            </div>
+            <p>{{ properties.description }}</p>
+            <div class="add-tab">
+                <p><span class="glyphicon glyphicon-bed"></span> {{ properties.numberOfRooms }} Bedrooms</p>  
+                <p><i class="fa fa-bath"></i> {{ properties.numberOfBathrooms}} Bathrooms</p>
+            </div>
+            <p><span class="glyphicon glyphicon-map-marker"></span> {{ properties.location }}</p>
+        
+
+            <button type="submit" class="btn email-btn">Email Realtor</button>
+        </div>
+
+    </div>
+
+{% endblock %} 

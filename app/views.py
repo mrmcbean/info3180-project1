@@ -6,8 +6,16 @@ This file creates your application.
 """
 
 from app import app
-from flask import render_template, request, redirect, url_for
+from app import models
+from flask import render_template, request, redirect, url_for,redirect,flash,send_from_directory
+from .forms import PropertyForm
+from werkzeug.utils import secure_filename
+from app.models import PropertyInfo
+from app import db
+from sqlalchemy import exc
 
+import os
+import datetime
 
 ###
 # Routing for your application.
@@ -22,12 +30,66 @@ def home():
 @app.route('/about/')
 def about():
     """Render the website's about page."""
-    return render_template('about.html', name="Mary Jane")
-
+    return render_template('about.html', name="real estate")
 
 ###
 # The functions below should be applicable to all Flask apps.
 ###
+
+@app.route('/property/', methods = ['GET','POST'])
+def property():
+    """Render the website's form to add a new property. """
+    form = PropertyForm()
+
+    if request.method == 'POST' and form.validate_on_submit():
+        title = form.title.data
+        description = form.description.data
+        numberOfRooms = form.numberOfRooms.data
+        numberOfBathrooms = form.numberOfBathrooms.data
+        price = form.price.data
+        propertyType = form.propertyType.data
+        location = form.location.data
+        photo = form.photo.data
+        filename = secure_filename(photo.filename)
+        photo.save(os.path.join(app.config['UPLOAD_FOLDER'],filename))
+
+        prop = PropertyInfo (title, description,numberOfRooms,numberOfBathrooms,price,location,propertyType,filename)
+
+        db.session.add(prop)
+        db.session.commit()
+        
+        
+
+        flash("Property Successfully Added", "success")
+        return redirect(url_for('properties'))
+
+    return render_template('propertyform.html', form=form)
+
+@app.route('/properties', methods= ['GET'])
+def properties():
+    """Renders a list of all properties in the database"""
+    allProps = PropertyInfo.query.all()
+    if request.method == 'GET':
+    #propsAll = []
+
+    #for i in propsAll:
+        #propsAll.append({"id":i.id, "title":i.title, "price":i.price, "location":i.location, "photo":i.photo}) 
+        
+        return render_template('properties.html', properties=allProps)
+
+@app.route('/property/<propertyid>', methods = ['GET'])
+def pid(propertyid):
+    """Renders the template for viewing an individual property by a specific  property id"""
+    prec = PropertyInfo.query.filter_by(id = propertyid).first()
+    if request.method == 'GET':
+        return render_template('propertyid.html', properties = prec)
+
+
+@app.route('/upload/<filename>')
+def get_image(filename):
+    root_dir = os.getcwd()
+    return send_from_directory(os.path.join(root_dir, app.config['UPLOAD_FOLDER']),filename)
+
 
 # Display Flask WTF errors as Flash messages
 def flash_errors(form):
